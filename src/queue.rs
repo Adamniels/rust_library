@@ -1,19 +1,19 @@
-use std::io;
+// TODO: lägg till en iterator för denna klass
 
-pub struct Queue {
-    data: Vec<String>,
+pub struct Queue<T> {
+    data: Vec<T>,
 }
 
-impl Queue {
+impl<T> Queue<T> {
     pub fn new() -> Self {
         Queue { data: vec![] }
     }
 
-    pub fn enqueue(&mut self, item: String) {
+    pub fn enqueue(&mut self, item: T) {
         self.data.push(item);
     }
 
-    pub fn dequeue(&mut self) -> Option<String> {
+    pub fn dequeue(&mut self) -> Option<T> {
         if self.is_empty() {
             return None;
         }
@@ -28,7 +28,7 @@ impl Queue {
         self.data.len()
     }
 
-    pub fn peek(&self) -> Option<&str> {
-        self.data.get(0).map(|str| str.as_str())
+    pub fn peek(&self) -> Option<&T> {
+        self.data.get(0)
     }
 }
