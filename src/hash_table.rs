@@ -35,15 +35,27 @@ pub fn simple_hash(s: &str, buckets: usize) -> usize {
     hash % buckets
 }
 
-pub struct HashMap {
+// Functions
+//  - insert
+//  - size, number of entries -> usize
+//  - is empty -> bool
+//  - get value -> Option<&T>
+//  - Remove/take value -> Option<T>
+//  - clone value -> Option<T>
+//  - contains key -> bool
+//  - clear
+//  - keys -> Vec<&T>
+//  - values -> Vec<&T>
+
+pub struct HashTable {
     table: Vec<Vec<Entry>>,
     buckets: usize,
     hash_func: fn(&str, usize) -> usize,
 }
 
-impl HashMap {
+impl HashTable {
     pub fn new(buckets: usize, hash_func: fn(&str, usize) -> usize) -> Self {
-        HashMap {
+        HashTable {
             table: vec![vec![]; buckets],
             buckets,
             hash_func,
@@ -64,5 +76,9 @@ impl HashMap {
 
     pub fn is_empty(&self) -> bool {
         self.table.iter().all(|buck| buck.is_empty())
+    }
+
+    pub fn get_value(&self, key: &str) -> Option<&str> {
+        todo!("get value")
     }
 }
