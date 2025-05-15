@@ -1,4 +1,4 @@
-use crate::hash_table::{Entry, HashTable, simple_hash};
+use crate::hash_table::{simple_hash, Entry, HashTable};
 
 // TODO: skriva ut mina test resultat snyggare, med ett script, hur enkelt är detta?
 
@@ -50,7 +50,7 @@ fn hashtable_get_simple_test() {
 
     hash_table.insert("key1".to_string(), "value1".to_string());
 
-    let value = hash_table.get_value("key1");
+    let mut value = hash_table.get_value("key1");
 
     match value {
         Some(value) => {
@@ -60,4 +60,34 @@ fn hashtable_get_simple_test() {
             panic!("expected Some")
         }
     }
+    value = hash_table.get_value("non existing");
+
+    assert_eq!(None, value, "Trying non existing key")
+}
+
+#[test]
+fn hashtable_remove_simple_test() {
+    let mut hash_table = HashTable::new(17, simple_hash);
+
+    hash_table.insert("key1".to_string(), "value1".to_string());
+
+    assert!(!hash_table.is_empty(), "not empty before remove");
+    assert_eq!(1, hash_table.size(), "size 1 before remove");
+
+    let mut value = hash_table.remove("key1");
+
+    assert!(hash_table.is_empty(), "empty after remove");
+    assert_eq!(0, hash_table.size(), "size 0 after remove");
+
+    match value {
+        Some(value) => {
+            assert_eq!("value1", value, "First get_value after insert")
+        }
+        None => {
+            panic!("expected Some")
+        }
+    }
+    value = hash_table.remove("non existing");
+
+    assert_eq!(None, value, "Trying non existing key")
 }
