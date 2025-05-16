@@ -35,18 +35,22 @@ pub fn simple_hash(s: &str, buckets: usize) -> usize {
     hash % buckets
 }
 
-// Functions
+// Functions:
 //  - [X] insert
 //  - [X] size, number of entries -> usize
 //  - [X] is empty -> bool
 //  - [X] get value -> Option<&T>
 //  - [X] Remove/take value -> Option<T>
-//  - [ ] clone value -> Option<T>  TODO:(next)
-//  - [ ] contains key -> bool
-//  - [ ] clear
-//  - [ ] keys -> Vec<&T>
-//  - [ ] values -> Vec<&T>
-
+//  - [X] clone value -> Option<T>
+//  - [X] contains key -> bool
+//  - [X] contains value -> bool
+//
+//  Maybe:
+//      - clear
+//      - keys -> Vec<&T>
+//      - values -> Vec<&T>
+//      - keys cloned
+//      - values cloned
 pub struct HashTable {
     table: Vec<Vec<Entry>>,
     buckets: usize,
@@ -105,5 +109,39 @@ impl HashTable {
                 return None;
             }
         }
+    }
+
+    pub fn clone(&mut self, key: &str) -> Option<String> {
+        let bucket_nr = (self.hash_func)(&key, self.buckets);
+        let bucket = &mut self.table[bucket_nr];
+        let result = bucket.iter().position(|entry| entry.get_key() == key);
+        match result {
+            Some(index) => {
+                let clone_value = bucket[index].clone_value();
+                Some(clone_value)
+            }
+            None => {
+                return None;
+            }
+        }
+    }
+
+    pub fn contains_key(&self, key: &str) -> bool {
+        let bucket_nr = (self.hash_func)(&key, self.buckets);
+        let found = &self.table[bucket_nr]
+            .iter()
+            .find(|entry| entry.get_key() == key);
+
+        match found {
+            Some(..) => true,
+            None => false,
+        }
+    }
+
+    pub fn contains_value(&self, value: &str) -> bool {
+        // kan använda any ist för alternativ lösning ovanför
+        self.table
+            .iter()
+            .any(|bucket| bucket.iter().any(|entry| entry.get_value() == value))
     }
 }

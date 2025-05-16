@@ -1,39 +1,40 @@
 #!/bin/bash
 
-echo -e "\033[0;32m> Kör kodtäckning med Tarpaulin...\033[0m"
-echo -e "\033[0;34m> Running tests...\033[0m"
 
-# Kör test och spara all output
-output=$(cargo tarpaulin --out Html -- --nocapture 2>&1)
+GREEN='\033[0;32m'
+RED='\033[0;31m'
+NC='\033[0m'
 
-# Filtrera bort tarpaulin-loggar och kompilering
-cleaned=$(echo "$output" | awk '
-  /Compiling / { next }
-  /Finished `test` profile/ { next }
-  { print }
-')
+# Kör tarpaulin och få ren output
+raw_output=$(cargo tarpaulin --out Html 2>&1 | \
+  grep -Ev '^\x1B\[2m.*(INFO|DEBUG)' | \
+  sed 's/\x1B\[[0-9;]*m//g' | grep '^test ')
 
-# Extrahera testresultat för gruppering
-echo "$cleaned" | grep '^test ' | while read -r line; do
-  if echo "$line" | grep -q 'queue_test'; then
-    echo -e "\033[1;36m🔹 Queue Tests\033[0m"
-    break
-  fi
+# Extrahera unika suites
+suites=$(echo "$raw_output" | sed -n 's/^test tests::\([^:]*\)::.*$/\1/p' | sort | uniq)
+
+# Gå igenom varje suite och skriv ut resultaten
+for suite in $suites; do
+  echo -e "\n🔹 Test Suite: ${suite}"
+
+  # Filtrera rader för denna suite
+  echo "$raw_output" | grep "tests::$suite::" | while read -r line; do
+    if [[ "$line" == *"... ok" ]]; then
+      echo -e "  ${GREEN}${line}${NC}"
+    elif [[ "$line" == *"... FAILED" ]]; then
+      echo -e "  ${RED}${line}${NC}"
+    else
+      echo "  $line"
+    fi
+  done
 done
 
-echo "$cleaned" | grep '^test tests::queue_test' | sed 's/test tests::queue_test::/- /'
+# Visa summering
+summary=$(cargo tarpaulin --out Html 2>&1 | grep 'test result\|coverage')
+echo -e "\n📊 ${summary}"
+echo -e "\033[0;32m> Running coverage with tarpaulin...\033[0m"
 
-if echo "$cleaned" | grep -q 'hashmap_test'; then
-  echo ""
-  echo -e "\033[1;36m🔹 Hashmap Tests\033[0m"
-  echo "$cleaned" | grep '^test tests::hashmap_test' | sed 's/test tests::hashmap_test::/- /'
-fi
-
-# Visa slutresultat och fel
-echo ""
-echo "$cleaned" | grep '^test result:'
-echo ""
-echo "$cleaned" | grep -v '^test ' | grep -v '^test result:' | grep -v '^running ' || true
-
-echo -e "\n\033[0;32m> Rapport genererad: tarpaulin-report.html\033[0m"
-
+# # Kör tarpaulin och filtrera output
+# cargo tarpaulin --out Html 2>&1 | \
+#   grep -Ev '^\x1B\[2m.*(INFO|DEBUG)' | \
+#   sed 's/\x1B\[[0-9;]*m//g'

@@ -91,3 +91,80 @@ fn hashtable_remove_simple_test() {
 
     assert_eq!(None, value, "Trying non existing key")
 }
+
+#[test]
+fn hashtable_clone_simple_test() {
+    let mut hash_table = HashTable::new(17, simple_hash);
+
+    hash_table.insert("key1".to_string(), "value1".to_string());
+
+    assert!(!hash_table.is_empty(), "not empty before clone");
+    assert_eq!(1, hash_table.size(), "size 1 before clone");
+
+    let mut value = hash_table.clone("key1");
+
+    assert!(!hash_table.is_empty(), "still not empty after clone");
+    assert_eq!(1, hash_table.size(), "size still 1 after remove");
+
+    match value {
+        Some(value) => {
+            assert_eq!("value1", value, "First get_value after insert")
+        }
+        None => {
+            panic!("expected Some")
+        }
+    }
+    value = hash_table.clone("non existing");
+
+    assert_eq!(None, value, "Trying non existing key");
+
+    value = hash_table.remove("key1");
+
+    assert!(hash_table.is_empty(), "empty after remove");
+    assert_eq!(0, hash_table.size(), "size 0 after remove");
+
+    match value {
+        Some(value) => {
+            assert_eq!("value1", value, "First get_value after insert")
+        }
+        None => {
+            panic!("expected Some")
+        }
+    }
+}
+
+#[test]
+fn hashtable_contains_simple_test() {
+    let mut hash_table = HashTable::new(17, simple_hash);
+
+    hash_table.insert("key1".to_string(), "value1".to_string());
+
+    assert!(
+        hash_table.contains_key("key1"),
+        "contains after inserted key1"
+    );
+    assert!(
+        hash_table.contains_value("value1"),
+        "contains after inserted value1"
+    );
+
+    assert!(
+        !hash_table.contains_key("non existing"),
+        "dont contain uninserted key"
+    );
+    assert!(
+        !hash_table.contains_value("non existing"),
+        "dont contain uninserted value"
+    );
+
+    hash_table.remove("key1");
+
+    assert!(
+        !hash_table.contains_key("key1"),
+        "dont contain after removing entry"
+    );
+    assert!(
+        !hash_table.contains_value("value1"),
+        "dont contain after removing entry"
+    );
+}
