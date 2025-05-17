@@ -1,3 +1,4 @@
+// TODO: make generic
 #[derive(Clone)] // TODO: varför?
 pub struct Entry {
     key: String,
