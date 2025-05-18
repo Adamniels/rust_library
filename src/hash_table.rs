@@ -1,34 +1,33 @@
-// TODO: make generic
-#[derive(Clone)] // TODO: varför?
-pub struct Entry {
-    key: String,
-    value: String,
+#[derive(Clone)]
+pub struct Entry<K: PartialEq + Clone, V: PartialEq + Clone> {
+    key: K,
+    value: V,
 }
 
-impl Entry {
-    pub fn new(key: String, value: String) -> Self {
+impl<K: PartialEq + Clone, V: PartialEq + Clone> Entry<K, V> {
+    pub fn new(key: K, value: V) -> Self {
         Entry { key, value }
     }
 
-    pub fn get_key(&self) -> &String {
+    pub fn get_key(&self) -> &K {
         &self.key
     }
 
-    pub fn get_value(&self) -> &String {
+    pub fn get_value(&self) -> &V {
         &self.value
     }
 
-    pub fn take_value(self) -> String {
+    pub fn take_value(self) -> V {
         self.value
     }
 
-    pub fn clone_value(&self) -> String {
+    pub fn clone_value(&self) -> V {
         self.value.clone()
     }
 }
 
 /// simple hash function for testing
-pub fn simple_hash(s: &str, buckets: usize) -> usize {
+pub fn simple_hash(s: &String, buckets: usize) -> usize {
     let mut hash: usize = 0;
     for byte in s.bytes() {
         hash = hash.wrapping_mul(31).wrapping_add(byte as usize);
@@ -52,14 +51,18 @@ pub fn simple_hash(s: &str, buckets: usize) -> usize {
 //      - values -> Vec<&T>
 //      - keys cloned
 //      - values cloned
-pub struct HashTable {
-    table: Vec<Vec<Entry>>,
+
+// TODO:
+//   - kolla coverage
+
+pub struct HashTable<K: PartialEq + Clone, V: PartialEq + Clone> {
+    table: Vec<Vec<Entry<K, V>>>,
     buckets: usize,
-    hash_func: fn(&str, usize) -> usize,
+    hash_func: fn(&K, usize) -> usize,
 }
 
-impl HashTable {
-    pub fn new(buckets: usize, hash_func: fn(&str, usize) -> usize) -> Self {
+impl<K: PartialEq + Clone, V: PartialEq + Clone> HashTable<K, V> {
+    pub fn new(buckets: usize, hash_func: fn(&K, usize) -> usize) -> Self {
         HashTable {
             table: vec![vec![]; buckets],
             buckets,
@@ -67,8 +70,14 @@ impl HashTable {
         }
     }
 
-    pub fn insert(&mut self, key: String, value: String) {
-        let bucket_nr = (self.hash_func)(&key, self.buckets);
+    pub fn insert(&mut self, key: K, value: V) {
+        let bucket_nr = {
+            // &key lever bara inuti detta block, vilket gör att jag inte behöver clone på key
+            // tidigare så behövdes det för att &key satt på en referens och då inte gick att
+            // skicka in i hast tablet
+            let key_ref = &key;
+            (self.hash_func)(key_ref, self.buckets)
+        };
         self.table[bucket_nr].push(Entry { key, value });
     }
 
@@ -83,7 +92,7 @@ impl HashTable {
         self.table.iter().all(|buck| buck.is_empty())
     }
 
-    pub fn get_value(&self, key: &str) -> Option<&str> {
+    pub fn get_value(&self, key: &K) -> Option<&V> {
         let bucket_nr = (self.hash_func)(&key, self.buckets);
         let bucket = &self.table[bucket_nr];
         let result = bucket.iter().find(|k| k.get_key() == key);
@@ -97,7 +106,7 @@ impl HashTable {
         }
     }
 
-    pub fn remove(&mut self, key: &str) -> Option<String> {
+    pub fn remove(&mut self, key: &K) -> Option<V> {
         let bucket_nr = (self.hash_func)(&key, self.buckets);
         let bucket = &mut self.table[bucket_nr];
         let result = bucket.iter().position(|entry| entry.get_key() == key);
@@ -112,7 +121,7 @@ impl HashTable {
         }
     }
 
-    pub fn clone(&mut self, key: &str) -> Option<String> {
+    pub fn clone(&mut self, key: &K) -> Option<V> {
         let bucket_nr = (self.hash_func)(&key, self.buckets);
         let bucket = &mut self.table[bucket_nr];
         let result = bucket.iter().position(|entry| entry.get_key() == key);
@@ -127,7 +136,7 @@ impl HashTable {
         }
     }
 
-    pub fn contains_key(&self, key: &str) -> bool {
+    pub fn contains_key(&self, key: &K) -> bool {
         let bucket_nr = (self.hash_func)(&key, self.buckets);
         let found = &self.table[bucket_nr]
             .iter()
@@ -139,7 +148,7 @@ impl HashTable {
         }
     }
 
-    pub fn contains_value(&self, value: &str) -> bool {
+    pub fn contains_value(&self, value: &V) -> bool {
         // kan använda any ist för alternativ lösning ovanför
         self.table
             .iter()
