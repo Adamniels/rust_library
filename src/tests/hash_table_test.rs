@@ -1,7 +1,5 @@
 use crate::hash_table::{Entry, HashTable, simple_hash};
 
-// TODO: skriva ut mina test resultat snyggare, med ett script, hur enkelt är detta?
-
 ////// Testing entry struct //////
 #[test]
 fn entry_simple_test() {
@@ -178,4 +176,19 @@ fn hashtable_contains_simple_test() {
         !hash_table.contains_value(&value_str),
         "dont contain after removing entry"
     );
+}
+
+#[test]
+fn hash_table_test_different_types() {
+    let mut hash_table = HashTable::new(17, simple_hash);
+
+    let key = "key1".to_string();
+    let value = 1;
+    hash_table.insert(key.clone(), value);
+    assert_eq!(1, hash_table.size(), "size 1 after insert");
+    assert!(!hash_table.is_empty(), "not empty after insert");
+    assert_eq!(&1, hash_table.get_value(&key).unwrap(), "get value");
+    assert_eq!(1, hash_table.remove(&key).unwrap(), "remove value");
+    assert_eq!(0, hash_table.size(), "size 0 after remove");
+    assert!(hash_table.is_empty(), "empty after remove");
 }

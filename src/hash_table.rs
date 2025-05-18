@@ -52,9 +52,6 @@ pub fn simple_hash(s: &String, buckets: usize) -> usize {
 //      - keys cloned
 //      - values cloned
 
-// TODO:
-//   - kolla coverage
-
 pub struct HashTable<K: PartialEq + Clone, V: PartialEq + Clone> {
     table: Vec<Vec<Entry<K, V>>>,
     buckets: usize,
