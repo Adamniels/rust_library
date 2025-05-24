@@ -19,6 +19,10 @@ impl Node {
         &self.value
     }
 
+    pub fn get_key(&self) -> i32 {
+        self.key
+    }
+
     pub fn destroy(self) -> String {
         self.value
     }
@@ -56,8 +60,8 @@ impl Clone for Node {
 //  - [X] is_empty -> bool
 //  - [X] size -> usize
 //  - [X] insert
-//  - [ ] contains_value -> bool
-//  - [ ] contains_key -> bool
+//  - [X] contains_value -> bool
+//  - [X] contains_key -> bool
 //  - [ ] remove -> value
 //  - [ ] in_order -> sorted list with all nodes
 //  - [ ] height -> usize
@@ -126,8 +130,24 @@ impl BinarySearchTree {
     }
 
     pub fn contains_key(&self, key: i32) -> bool {
-        // can do smart search
-        todo!("contains key")
+        let mut current = &self.root;
+
+        loop {
+            match current {
+                Some(node) => {
+                    if key == node.key {
+                        return true;
+                    } else if key < node.key {
+                        current = &node.left;
+                    } else {
+                        current = &node.right;
+                    }
+                }
+                None => {
+                    return false;
+                }
+            }
+        }
     }
 
     pub fn contains_value(&self, value: String) -> bool {
@@ -152,5 +172,61 @@ impl BinarySearchTree {
         }
 
         false
+    }
+
+    pub fn remove(&mut self, key: i32) -> Option<Box<Node>> {
+        Self::remove_helper(&mut self.root, key)
+    }
+    // helper functions for remove
+    fn remove_helper(current: &mut Option<Box<Node>>, key: i32) -> Option<Box<Node>> {
+        match current {
+            Some(node) => {
+                if key < node.key {
+                    return Self::remove_helper(&mut node.left, key);
+                } else if key > node.key {
+                    return Self::remove_helper(&mut node.right, key);
+                } else {
+                    let mut target = current.take().unwrap(); // flytta ut noden så vi får ägarskap
+
+                    return match (target.left.take(), target.right.take()) {
+                        (None, None) => {
+                            // Inga barn – bara ta bort noden
+                            // take() sätter None istället därför vi inte behöver uppdatera parent
+                            Some(target)
+                        }
+                        (Some(child), None) | (None, Some(child)) => {
+                            // Ett barn – returnera barnet
+                            *current = Some(child);
+                            Some(target)
+                        }
+                        (Some(left), Some(right)) => {
+                            // Två barn – hitta minsta i höger subträd
+                            let (mut min, new_right) = Self::remove_min(right);
+                            min.left = Some(left);
+                            min.right = new_right;
+                            *current = Some(min);
+                            Some(target)
+                        }
+                    };
+                }
+            }
+            None => None, // noden finns inte
+        }
+    }
+
+    fn remove_min(mut node: Box<Node>) -> (Box<Node>, Option<Box<Node>>) {
+        match node.left {
+            None => {
+                // Vi har hittat minsta nod
+                let right = node.right.take();
+                (node, right)
+            }
+            Some(_) => {
+                // Fortsätt söka till vänster
+                let (min, new_left) = Self::remove_min(node.left.take().unwrap());
+                node.left = new_left;
+                (min, Some(node))
+            }
+        }
     }
 }

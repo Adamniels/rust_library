@@ -126,3 +126,87 @@ fn test_contains_value() {
         "Contain updated value after overwrite"
     );
 }
+
+#[test]
+fn test_remove_nodes() {
+    let mut tree = BinarySearchTree::new();
+
+    // Lägg till noder
+    tree.insert(Node::new(10, "root".to_string()));
+    tree.insert(Node::new(5, "left".to_string()));
+    tree.insert(Node::new(15, "right".to_string()));
+    tree.insert(Node::new(3, "left-left".to_string()));
+    tree.insert(Node::new(7, "left-right".to_string()));
+
+    assert_eq!(tree.size(), 5, "tree size before any remove");
+
+    // Ta bort ett blad (left-left)
+    let removed = tree.remove(3);
+    assert!(removed.is_some(), "should remove existing leaf");
+    assert_eq!(removed.unwrap().get_value(), "left-left");
+    assert!(!tree.contains_key(3), "should not contain removed leaf");
+    assert_eq!(tree.size(), 4, "tree size after removing leaf");
+
+    // Ta bort nod med ett barn (left)
+    let removed = tree.remove(5);
+    assert!(removed.is_some(), "should remove node with one child");
+    assert_eq!(removed.unwrap().get_value(), "left");
+    assert!(!tree.contains_key(5), "should not contain removed node");
+    assert_eq!(
+        tree.size(),
+        3,
+        "tree size after removing node with one child"
+    );
+
+    // Ta bort nod med två barn (root)
+    let removed = tree.remove(10);
+    assert!(removed.is_some(), "should remove root with two children");
+    assert_eq!(removed.unwrap().get_value(), "root");
+    assert!(!tree.contains_key(10), "should not contain removed root");
+    assert_eq!(tree.size(), 2, "tree size after removing root node");
+
+    // Ta bort nod som inte finns
+    let removed = tree.remove(999);
+    assert!(removed.is_none(), "should return None for non-existent key");
+    assert_eq!(
+        tree.size(),
+        2,
+        "tree size should be unchanged after failed remove"
+    );
+}
+
+#[test]
+fn test_remove_node_with_two_children_deep_right_min() {
+    let mut tree = BinarySearchTree::new();
+
+    // Skapa detta träd:
+    //         10
+    //        /  \
+    //      5     20
+    //           /
+    //         15
+    //        /
+    //      12
+    //     /
+    //    11   <- minsta noden i höger subträd (leftmost in right)
+
+    tree.insert(Node::new(10, "root".to_string()));
+    tree.insert(Node::new(5, "left".to_string()));
+    tree.insert(Node::new(20, "right".to_string()));
+    tree.insert(Node::new(15, "mid-right".to_string()));
+    tree.insert(Node::new(12, "deep-left".to_string()));
+    tree.insert(Node::new(11, "deepest-left".to_string()));
+
+    assert_eq!(tree.size(), 6);
+
+    let removed = tree.remove(10);
+    assert!(removed.is_some(), "should remove root with two children");
+
+    let removed_node = removed.unwrap();
+    assert_eq!(removed_node.get_key(), 10);
+    assert_eq!(removed_node.get_value(), "root");
+
+    // Root ska nu vara 11 (minsta i höger subträd)
+    assert!(tree.contains_key(11));
+    assert_eq!(tree.size(), 5);
+}
