@@ -59,3 +59,70 @@ fn test_is_empty_insert_size() {
 
     assert_eq!(tree.size(), 5, "Tree size should be 5 after five inserts");
 }
+
+#[test]
+fn test_contains_key() {
+    let mut tree = BinarySearchTree::new();
+
+    assert!(!tree.contains_key(10), "Don't contain key before inserts");
+
+    tree.insert(Node::new(10, "root".to_string()));
+    assert!(tree.contains_key(10), "Contain key after first insert");
+
+    tree.insert(Node::new(5, "left".to_string()));
+    tree.insert(Node::new(15, "right".to_string()));
+    tree.insert(Node::new(3, "left-left".to_string()));
+    tree.insert(Node::new(7, "left-right".to_string()));
+
+    assert!(tree.contains_key(15), "Contain key after many inserts");
+    assert!(tree.contains_key(5), "Contain key after many inserts");
+    assert!(tree.contains_key(3), "Contain key after many inserts");
+    assert!(tree.contains_key(7), "Contain key after many inserts");
+
+    tree.insert(Node::new(7, "left-right-new".to_string()));
+    assert!(tree.contains_key(7), "Contain key after overwrite");
+}
+
+#[test]
+fn test_contains_value() {
+    let mut tree = BinarySearchTree::new();
+
+    assert!(
+        !tree.contains_value("root".to_string()),
+        "Don't contain value before inserts"
+    );
+
+    tree.insert(Node::new(10, "root".to_string()));
+    assert!(
+        tree.contains_value("root".to_string()),
+        "Contain value after first insert"
+    );
+
+    tree.insert(Node::new(5, "left".to_string()));
+    tree.insert(Node::new(15, "right".to_string()));
+    tree.insert(Node::new(3, "left-left".to_string()));
+    tree.insert(Node::new(7, "left-right".to_string()));
+
+    assert!(
+        tree.contains_value("right".to_string()),
+        "Contain value after many inserts"
+    );
+    assert!(
+        tree.contains_value("left".to_string()),
+        "Contain value after many inserts"
+    );
+    assert!(
+        tree.contains_value("left-left".to_string()),
+        "Contain value after many inserts"
+    );
+    assert!(
+        tree.contains_value("left-right".to_string()),
+        "Contain value after many inserts"
+    );
+
+    tree.insert(Node::new(7, "left-right-new".to_string()));
+    assert!(
+        tree.contains_value("left-right-new".to_string()),
+        "Contain updated value after overwrite"
+    );
+}
