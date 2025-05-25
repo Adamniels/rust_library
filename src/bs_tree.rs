@@ -62,9 +62,8 @@ impl Clone for Node {
 //  - [X] insert
 //  - [X] contains_value -> bool
 //  - [X] contains_key -> bool
-//  - [ ] remove -> value
+//  - [X] remove -> value
 //  - [ ] in_order -> sorted list with all nodes
-//  - [ ] height -> usize
 //  - [ ] map - apply a function on all nodes in the tree
 
 pub struct BinarySearchTree {
@@ -228,5 +227,9 @@ impl BinarySearchTree {
                 (min, Some(node))
             }
         }
+    }
+
+    pub fn in_order(&self) -> Vec<&Node> {
+        todo!("in_order")
     }
 }

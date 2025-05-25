@@ -210,3 +210,10 @@ fn test_remove_node_with_two_children_deep_right_min() {
     assert!(tree.contains_key(11));
     assert_eq!(tree.size(), 5);
 }
+
+#[test]
+fn test_in_order() {
+    todo!("test för in_order")
+    // Insert many in a order that makes the tree be kinda comlicated, then call in order and
+    // assert it is in order
+}
